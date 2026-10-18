@@ -1,0 +1,70 @@
+name: Gerar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir google-services.json
+        run: |
+          if [ ! -s android/app/google-services.json ]; then
+            echo "::error::Falta o arquivo android/app/google-services.json (baixe no Firebase e suba nessa pasta)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar dependências e copiar o app web
+        run: |
+          npm ci --legacy-peer-deps
+          npx cap sync android
+
+      - name: Preparar assinatura
+        env:
+          KS_B64: ${{ secrets.ROTINA_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "::error::Falta o secret ROTINA_KEYSTORE_B64"; exit 1; fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/rotina.jks"
+          echo "ROTINA_KEYSTORE=$RUNNER_TEMP/rotina.jks" >> "$GITHUB_ENV"
+
+      - name: Compilar APK
+        working-directory: android
+        env:
+          ROTINA_KEYSTORE_PASSWORD: ${{ secrets.ROTINA_KEYSTORE_PASSWORD }}
+          ROTINA_KEY_PASSWORD: ${{ secrets.ROTINA_KEYSTORE_PASSWORD }}
+          ROTINA_KEY_ALIAS: rotina
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          mkdir -p ../saida
+          cp app/build/outputs/apk/release/app-release.apk ../saida/Rotina.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rotina-apk
+          path: saida/Rotina.apk
+
+      - name: Publicar na página de Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Rotina 1.${{ github.run_number }}
+          body: APK gerado automaticamente. Baixe o Rotina.apk no celular e instale por cima da versão anterior.
+          files: saida/Rotina.apk
+          make_latest: true
