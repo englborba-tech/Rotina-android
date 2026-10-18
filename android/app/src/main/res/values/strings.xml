@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rotina</string>
+    <string name="title_activity_main">Rotina</string>
+    <string name="package_name">com.englborba.rotina</string>
+    <string name="custom_url_scheme">com.englborba.rotina</string>
+    <string name="widget_desc">Compromissos e tarefas de hoje</string>
+</resources>

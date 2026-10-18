@@ -1,0 +1,21 @@
+{
+  "name": "rotina",
+  "version": "1.0.0",
+  "description": "App Rotina para Android",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor-firebase/authentication": "7.5.0",
+    "@capacitor/android": "7.6.9",
+    "@capacitor/core": "7.6.9",
+    "@capacitor/local-notifications": "7.0.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.6.9"
+  },
+  "private": true
+}

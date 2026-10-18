@@ -1,0 +1,10 @@
+{
+  "appId": "com.englborba.rotina",
+  "appName": "Rotina",
+  "webDir": "www",
+  "android": { "backgroundColor": "#1f2a44" },
+  "plugins": {
+    "FirebaseAuthentication": { "skipNativeAuth": true, "providers": ["google.com"] },
+    "LocalNotifications": { "smallIcon": "ic_stat_rotina", "iconColor": "#2F5BD3" }
+  }
+}

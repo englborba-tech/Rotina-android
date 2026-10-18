@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_fundo">
+    <TextView android:id="@+id/data" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#AAB4CC" android:textSize="12sp" android:singleLine="true" />
+    <TextView android:id="@+id/resumo" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#F4F6FB" android:textSize="16sp" android:textStyle="bold" android:singleLine="true"
+        android:layout_marginBottom="6dp" />
+    <TextView android:id="@+id/l1" style="@style/WidgetLinha" />
+    <TextView android:id="@+id/l2" style="@style/WidgetLinha" />
+    <TextView android:id="@+id/l3" style="@style/WidgetLinha" />
+    <TextView android:id="@+id/l4" style="@style/WidgetLinha" />
+    <TextView android:id="@+id/l5" style="@style/WidgetLinha" />
+</LinearLayout>
