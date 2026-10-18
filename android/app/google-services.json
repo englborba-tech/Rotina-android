@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "109196671935",
+    "project_id": "financias-c809d",
+    "storage_bucket": "financias-c809d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:109196671935:android:786a6ddac4d9b9bafb7f0a",
+        "android_client_info": {
+          "package_name": "com.englborba.rotina"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "109196671935-bj5damdvj26b6q1r0oprhoq6qbg3v0ai.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.englborba.rotina",
+            "certificate_hash": "e407a6c29ec43b748f57069130a950a2b6f087bc"
+          }
+        },
+        {
+          "client_id": "109196671935-iroh6oh8lfku3oephva6rru537srbemc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1vFhX7FJyErQVPIXgB0iFnHv8UMF8H-M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "109196671935-iroh6oh8lfku3oephva6rru537srbemc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
