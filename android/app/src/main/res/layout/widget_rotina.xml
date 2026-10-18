@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/raiz"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="14dp"
     android:background="@drawable/widget_fundo">
-    <TextView android:id="@+id/data" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textColor="#AAB4CC" android:textSize="12sp" android:singleLine="true" />
-    <TextView android:id="@+id/resumo" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textColor="#F4F6FB" android:textSize="16sp" android:textStyle="bold" android:singleLine="true"
-        android:layout_marginBottom="6dp" />
-    <TextView android:id="@+id/l1" style="@style/WidgetLinha" />
-    <TextView android:id="@+id/l2" style="@style/WidgetLinha" />
-    <TextView android:id="@+id/l3" style="@style/WidgetLinha" />
-    <TextView android:id="@+id/l4" style="@style/WidgetLinha" />
-    <TextView android:id="@+id/l5" style="@style/WidgetLinha" />
+    <LinearLayout android:id="@+id/topo" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:paddingLeft="16dp" android:paddingRight="16dp" android:paddingTop="12dp" android:paddingBottom="8dp">
+        <TextView android:id="@+id/data" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textColor="#AAB4CC" android:textSize="12sp" android:singleLine="true" />
+        <TextView android:id="@+id/resumo" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textColor="#F4F6FB" android:textSize="17sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="end" />
+    </LinearLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <ListView android:id="@+id/lista" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:divider="@null" android:dividerHeight="0dp" android:paddingBottom="8dp" android:clipToPadding="false" />
+        <TextView android:id="@+id/vazio" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:gravity="center" android:padding="16dp" android:textColor="#9AA7C4" android:textSize="14sp"
+            android:text="Nada marcado para os próximos dias.\nToque para abrir a agenda." />
+    </FrameLayout>
 </LinearLayout>

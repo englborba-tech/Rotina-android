@@ -518,9 +518,10 @@ function textoBriefing(k){const its=itensDoDia(k),hk=key(hoje0()),atr=ativos().f
 let nsT=null,nsAssin="";
 function nativoSync(forcar){if(!NATIVO||!db)return;clearTimeout(nsT);nsT=setTimeout(async()=>{
   const a=ajustes(),b=hoje0(),dias={};
-  for(let i=0;i<8;i++){const k=key(add(b,i));dias[k]={itens:itensDoDia(k).slice(0,12).map(e=>({hora:e.hora,titulo:e.titulo}))};}
-  const atr=ativos().filter(e=>e.data<key(b)).length;
-  try{await PL.WidgetBridge.update({data:JSON.stringify({dias,atrasados:atr,atualizado:Date.now()})});}catch(e){}
+  const wi=e=>({hora:e.hora,titulo:e.titulo,local:e.local||"",detalhe:e.detalhe||"",prio:e.prio||0,obra:!!e.origem,data:e.data});
+  for(let i=0;i<8;i++){const k=key(add(b,i));dias[k]={itens:itensDoDia(k).slice(0,20).map(wi)};}
+  const atrL=ativos().filter(e=>e.data<key(b)).sort(ord).slice(0,10).map(wi);
+  try{await PL.WidgetBridge.update({data:JSON.stringify({dias,atrasados:atrL,atualizado:Date.now()})});}catch(e){}
   // notificações: refaz a programação dos próximos 7 dias
   const lista=[],agora=Date.now(),[hh,mm]=a.hora.split(":").map(Number);
   if(a.briefing)for(let i=0;i<7;i++){const d=add(b,i);if(!a.fimDeSemana&&(d.getDay()===0||d.getDay()===6))continue;
