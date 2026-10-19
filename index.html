@@ -87,7 +87,30 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
 /* Lista */
 .group{display:flex;flex-direction:column;gap:8px}
 .gh{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:0 4px}
-.gh.late{color:var(--p1)}.gh.cmp{color:var(--p2);margin-top:6px}
+.gh.late{color:var(--p1)}
+.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.tools .sp{flex:1}
+.it.sl{cursor:pointer}.it.sl .more{visibility:hidden}
+.sbox{width:24px;height:24px;border-radius:7px;border:2px solid var(--muted);margin-top:1px;display:grid;place-items:center}
+.it.on{background:var(--accent-soft)}.it.on .sbox{background:var(--accent);border-color:var(--accent)}.sbox svg{width:13px;height:13px;opacity:0}.it.on .sbox svg{opacity:1}
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.selbar .cbox{flex-direction:column;gap:8px;padding:10px}
+.selbar .row1{display:flex;align-items:center;gap:8px;font-weight:700;padding:0 4px}.selbar .row1 span{flex:1}
+.selbar .row1 button{font-size:13px;font-weight:600;color:var(--accent)}
+.selbar .acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.selbar .acts button{background:var(--surface2);border-radius:10px;padding:9px 4px;font-size:13px;font-weight:700}
+.selbar .acts button.red{color:var(--p1)}
+.selbar .acts button:disabled{opacity:.4}
+.conf{color:var(--p2);font-weight:700}
+.clk{display:flex;flex-direction:column;gap:2px}
+.ci{display:flex;align-items:center;gap:10px;padding:8px 4px;border-radius:8px}
+.ci input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.ci span{flex:1;overflow-wrap:anywhere}.ci.ok span{text-decoration:line-through;color:var(--muted)}
+.ci button{color:var(--muted);font-size:16px;padding:0 6px}
+.addci{display:flex;gap:6px}.addci input{flex:1;min-width:0;font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--fg)}
+.addci button{background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:700}
+.nota{width:100%;min-height:80px;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);resize:vertical}
+.dlab{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:8px 4px 2px}
+.body.tap{cursor:pointer}.gh.cmp{color:var(--p2);margin-top:6px}
 .gh button{font-size:12px;font-weight:600;color:var(--accent);text-transform:none;letter-spacing:0}
 .card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
 .it{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 12px 12px 14px;border-top:1px solid var(--line)}
@@ -160,7 +183,7 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
   </nav>
   <div id="extra" style="display:flex;flex-direction:column;gap:12px"></div>
   <div id="lista" style="display:flex;flex-direction:column;gap:18px"></div>
-  <div class="foot"><span class="status" id="st">Conectando…</span><span><a href="https://englborba-tech.github.io/Obras/" style="color:var(--accent);font-weight:600">App de obras ›</a> <button id="sair">Sair</button></span></div>
+  <div class="foot"><span class="status" id="st">Conectando…</span><span><a href="https://englborba-tech.github.io/Obras/" style="color:var(--accent);font-weight:600">App de obras ›</a> <button id="ajustes">Notificações</button> <button id="bkp">Backup</button> <button id="sair">Sair</button></span></div>
 </div>
 
 <div class="composer">
@@ -184,7 +207,8 @@ const hoje0=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
 const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const dk=s=>new Date(s+"T00:00");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const REP={d:"todo dia",u:"dias úteis",w:"toda semana",m:"todo mês"};
+const REP={d:"todo dia",u:"dias úteis",w:"toda semana","2w":"a cada 2 semanas",m:"todo mês",y:"todo ano"};
+const LEMB={"":"Padrão das notificações","0":"Sem lembrete","10":"10 min antes","30":"30 min antes","60":"1 h antes","120":"2 h antes","1440":"1 dia antes"};
 const SEM=["domingo","segunda","terca","quarta","quinta","sexta","sabado"];
 
 /* ---------- Interpretação da frase ---------- */
@@ -199,7 +223,9 @@ function parse(txt){
   if(m=/\s(!{1,3})(?=\s|$)/.exec(low)){prio=m[1].length;mark(m)}
   else if(m=new RegExp("\\s(urgente|prioridade alta)"+B).exec(low)){prio=3;mark(m)}
   // recorrência
-  if(m=new RegExp("\\s(todo dia|todos os dias|diariamente)"+B).exec(low)){rep="d";mark(m)}
+  if(m=new RegExp("\\s(a cada (?:2|duas) semanas|quinzenal|quinzenalmente)"+B).exec(low)){rep="2w";mark(m)}
+  else if(m=new RegExp("\\s(todo ano|todos os anos|anualmente)"+B).exec(low)){rep="y";mark(m)}
+  else if(m=new RegExp("\\s(todo dia|todos os dias|diariamente)"+B).exec(low)){rep="d";mark(m)}
   else if(m=new RegExp("\\s(dias uteis|todo dia util)"+B).exec(low)){rep="u";mark(m)}
   else if(m=new RegExp("\\s(?:toda|todo)s?\\s+(domingo|segunda|terca|quarta|quinta|sexta|sabado)s?(?:-feiras?)?"+B).exec(low)){rep="w";const i=SEM.indexOf(m[1]);date=add(base,(i-base.getDay()+7)%7);mark(m)}
   else if(m=new RegExp("\\s(toda semana|semanalmente)"+B).exec(low)){rep="w";mark(m)}
@@ -224,8 +250,13 @@ function parse(txt){
       const i=SEM.indexOf(m[1]); date=add(base,(i-base.getDay()+7)%7||7); mark(m);
     }
   }
-  // hora
-  if(m=new RegExp("\\s(?:as|a|das|ao)?\\s*(\\d{1,2})(?:h(\\d{2})?|:(\\d{2}))(?:min)?(?:\\s*(?:hrs?|horas))?"+B).exec(low)){
+  // hora (com intervalo: 10h às 11h30, 10h-12h, das 9h até 10h)
+  let fim="";
+  if(m=new RegExp("\\s(?:das?\\s+|de\\s+)?(\\d{1,2})(?:h(\\d{2})?|:(\\d{2}))\\s*(?:as|a|ate|-|–)\\s*(\\d{1,2})(?:h(\\d{2})?|:(\\d{2}))"+B).exec(low)){
+    const h=+m[1],mi=+(m[2]||m[3]||0),h2=+m[4],m2=+(m[5]||m[6]||0);
+    if(h<24&&h2<24&&mi<60&&m2<60){time=pad(h)+":"+pad(mi);fim=pad(h2)+":"+pad(m2);if(fim<=time)fim="";mark(m)}}
+  if(time){}
+  else if(m=new RegExp("\\s(?:as|a|das|ao)?\\s*(\\d{1,2})(?:h(\\d{2})?|:(\\d{2}))(?:min)?(?:\\s*(?:hrs?|horas))?"+B).exec(low)){
     const h=+m[1],mi=+(m[2]||m[3]||0); if(h<24&&mi<60){time=pad(h)+":"+pad(mi);mark(m)}
   }else if(m=new RegExp("\\s(?:as|ao)\\s+(meio[- ]dia)"+B).exec(low)){time="12:00";mark(m)}
   // tira os trechos reconhecidos
@@ -236,21 +267,21 @@ function parse(txt){
   if(lm&&lm[1].length>1){local=lm[1].trim();titulo=(" "+rest).slice(0,lm.index).trim()}
   titulo=titulo.replace(/[,\-–]+$/,"").trim();
   if(titulo)titulo=titulo[0].toUpperCase()+titulo.slice(1);
-  return {titulo:titulo||"Sem título",local,data:key(date||base),hora:time||"",rep,prio,tags,semData:!date&&!rep};
+  return {titulo:titulo||"Sem título",local,data:key(date||base),hora:time||"",fim,rep,prio,tags,semData:!date&&!rep};
 }
 
 /* ---------- Dados (Firebase, coleção "agenda") ---------- */
 let db=null,evs=[],base={},pendente=false, mes=(()=>{const d=hoje0();d.setDate(1);return d})(), modo="hoje", diaSel=key(hoje0()), tagSel="", busca="";
 const novoId=()=>db?db.collection("agenda").doc().id:"l"+Date.now()+Math.random().toString(36).slice(2,6);
 const limpa=e=>{const {id,...d}=e;return JSON.parse(JSON.stringify(d));};
-function norm(e){e.local=e.local||"";e.hora=e.hora||"";e.prio=+e.prio||0;e.tags=e.tags||[];e.rep=e.rep||null;e.st=e.st||"";e.titulo=e.titulo||"Sem título";return e;}
+function norm(e){e.fim=e.fim||"";e.check=e.check||[];e.nota=e.nota||"";e.local=e.local||"";e.hora=e.hora||"";e.prio=+e.prio||0;e.tags=e.tags||[];e.rep=e.rep||null;e.st=e.st||"";e.titulo=e.titulo||"Sem título";return e;}
 // grava só o que mudou desde a última versão conhecida
 function save(){
   const atual={};evs.forEach(e=>atual[e.id]=JSON.stringify(limpa(e)));
   if(db){Object.entries(atual).forEach(([id,j])=>{if(base[id]!==j){const d=JSON.parse(j);d.atualizado=Date.now();db.collection("agenda").doc(id).set(d).catch(()=>toast("Erro ao salvar"));}});
     Object.keys(base).forEach(id=>{if(!(id in atual))db.collection("agenda").doc(id).delete().catch(()=>{});});}
   base=atual;pendente=true;setTimeout(()=>pendente=false,1200);
-  render();if(typeof refreshPop==="function")refreshPop();
+  render();if(typeof refreshPop==="function")refreshPop();if(typeof nativoSync==="function")nativoSync();
 }
 const ord=(a,b)=>(a.data+(a.hora||"99:99")).localeCompare(b.data+(b.hora||"99:99"))||(b.prio-a.prio);
 
@@ -259,12 +290,15 @@ function proxima(e){
   if(e.rep==="d")return key(add(d,1));
   if(e.rep==="u"){let x=add(d,1);while(x.getDay()===0||x.getDay()===6)x=add(x,1);return key(x)}
   if(e.rep==="w")return key(add(d,7));
+  if(e.rep==="2w")return key(add(d,14));
+  if(e.rep==="y"){const x=new Date(d);x.setFullYear(x.getFullYear()+1);return key(x)}
   if(e.rep==="m"){const x=new Date(d);x.setMonth(x.getMonth()+1);return key(x)}
 }
 function concluir(e){
   if(e.st==="ok"){e.st="";delete e.doneAt;if(e.origem)e.reaberto=true;return "Reaberto"}
   e.st="ok"; e.doneAt=key(hoje0()); delete e.reaberto;
-  if(e.rep){const n=Object.assign({},e,{id:novoId(),st:"",data:proxima(e)});delete n.doneAt;evs.push(n);e.rep=null;return "Feito. Próximo: "+rotDia(n.data)}
+  if(e.rep){const nx=proxima(e);e.rep=e.rep;if(!e.repAte||nx<=e.repAte){const n=Object.assign({},e,{id:novoId(),st:"",data:nx,dono:e.dono});delete n.doneAt;
+    if(n.check)n.check=n.check.map(c=>({t:c.t,ok:false}));evs.push(n);e.rep=null;return "Feito. Próximo: "+rotDia(n.data)}e.rep=null;return "Feito. Fim da repetição"}
   return "Concluído";
 }
 
@@ -274,25 +308,45 @@ function rotDia(s){
   const n=diff===0?"Hoje":diff===1?"Amanhã":diff===-1?"Ontem":DIAS[d.getDay()];
   return n+", "+d.getDate()+" de "+MESES[d.getMonth()];
 }
+const minDe=h=>{const [a,b]=h.split(":").map(Number);return a*60+b};
+function conflitos(e){if(!e.hora||e.st||e.origem)return[];const a=minDe(e.hora),b=e.fim?minDe(e.fim):a+60;
+  return propria().filter(x=>x!==e&&x.id!==e.id&&x.data===e.data&&x.hora&&!x.st&&(()=>{const c=minDe(x.hora),d=x.fim?minDe(x.fim):c+60;return a<d&&c<b})());}
+let sel=null;
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 function itHTML(e,opt={}){
   const hk=key(hoje0()), late=!e.st&&e.data<hk;
   const meta=[];
-  if(e.hora)meta.push(`<span class="hr">${e.hora}</span>`);
+  if(e.hora)meta.push(`<span class="hr">${e.hora}${e.fim?"–"+e.fim:""}</span>`);
+  const cf=conflitos(e);if(cf.length)meta.push(`<span class="conf">⚠ conflito com ${esc(cf[0].titulo)}${cf.length>1?" +"+(cf.length-1):""}</span>`);
   if(opt.data||late)meta.push(`<span class="${late?"late":""}">${late?"Atrasado · ":""}${rotDia(e.data)}</span>`);
   if(e.local)meta.push(`<span>${esc(e.local)}</span>`);
   if(e.rep)meta.push(`<span>↻ ${REP[e.rep]}</span>`);
   e.tags.forEach(t=>meta.push(`<span class="tag">#${esc(t)}</span>`));
+  if(e.check&&e.check.length)meta.push(`<span>☑ ${e.check.filter(c=>c.ok).length}/${e.check.length}</span>`);
+  if(e.nota)meta.push(`<span>📝</span>`);
+  if(e.lemb!=null&&e.lemb!==""&&!e.origem)meta.push(`<span>🔔 ${e.lemb==0?"sem lembrete":LEMB[e.lemb]||e.lemb+" min antes"}</span>`);
+  if(escopo!=="meus"||!meu(e))meta.push(`<span class="ex">${e.dono==="ambos"?"nossa":meu(e)?"minha":"de "+OUTRO()}</span>`);
   if(e.origem)meta.push(`<span class="obra-tag">${e.generico?"lembrete da obra":"compra da obra"}</span>`);
-  return `<div class="it${e.st==="ok"?" ok":""}${e.st==="cx"?" cx":""}">
+  if(sel){const on=sel.has(e.id);return `<div class="it sl${on?" on":""}${e.st==="ok"?" ok":""}${e.st==="cx"?" cx":""}" data-sel="${e.id}" role="checkbox" aria-checked="${on}" tabindex="0">
+    <span class="sbox" aria-hidden="true">${CHECK}</span>
+    <div class="body"><div class="tt">${esc(e.titulo)}</div>${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div><span class="more"></span></div>`}
+  return `<div class="it${e.st==="ok"?" ok":""}${e.st==="cx"?" cx":""}" data-lp="${e.id}">
     ${e.st==="cx"?`<span class="ck" aria-hidden="true"></span>`:`<button class="ck p${e.prio}" data-ck="${e.id}" aria-label="${e.st==="ok"?"Reabrir":"Concluir"} ${esc(e.titulo)}">${CHECK}</button>`}
-    <div class="body"><div class="tt">${esc(e.titulo)}</div>${e.detalhe?`<div class="det">${esc(e.detalhe)}${e.total?" · "+e.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}):""}</div>`:""}${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div>
+    <div class="body tap" data-det="${e.id}"><div class="tt">${esc(e.titulo)}</div>${e.detalhe?`<div class="det">${esc(e.detalhe)}${e.total?" · "+e.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}):""}</div>`:""}${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div>
     <button class="more" data-more="${e.id}" aria-label="Mais opções">⋯</button></div>`;
 }
 const group=(titulo,itens,cls="",acao="",opt)=>itens.length?`<div class="group"><div class="gh ${cls}"><span>${titulo}</span>${acao}</div><div class="card">${itens.map(e=>itHTML(e,opt)).join("")}</div></div>`:"";
 const filtra=l=>l.filter(e=>(!tagSel||e.tags.includes(tagSel))&&(!busca||(e.titulo+" "+e.local+" "+e.tags.join(" ")).toLowerCase().includes(busca)));
 
-const vis=()=>evs.filter(e=>!e.oculto);           // tudo que aparece (sem lembretes excluídos)
+const EMAILS={lucas:"eng.lborba@gmail.com",ana:"analuisahp.al@gmail.com"};
+let USER="",escopo=(()=>{try{return localStorage.getItem("rotina-escopo")||"meus"}catch(e){return"meus"}})();
+const OUTRO=()=>USER===EMAILS.ana?"Lucas":"Ana";
+const donoDe=e=>e.dono||EMAILS.lucas;                       // itens antigos e compras de obra são do Lucas
+const meu=e=>donoDe(e)===USER||e.dono==="ambos";
+const temOutro=()=>evs.some(e=>!e.oculto&&!meu(e));
+const noEscopo=e=>escopo==="todos"||(escopo==="outro"?!meu(e)||e.dono==="ambos":meu(e));
+const vis=()=>evs.filter(e=>!e.oculto&&noEscopo(e));           // o que aparece na tela
+const propria=()=>evs.filter(e=>!e.oculto&&!e.origem&&meu(e));  // o que notifica e vai para o widget
 const minha=()=>vis().filter(e=>!e.origem);        // agenda própria
 const compras=()=>vis().filter(e=>e.origem);       // lembretes do app de obras
 function renderHero(){
@@ -326,6 +380,9 @@ function renderExtra(){
       g+=`<button class="dc ${cls}" data-day="${k}" aria-pressed="${k===diaSel}" aria-label="${rotDia(k)}, ${its.length} itens">${d.getDate()}<span class="dots">${dots}</span>${its.length>3?`<span class="cnt">+${its.length-3}</span>`:""}</button>`}
     h+=g+"</div></div>";
   }
+  {let tl='<div class="tools">';
+    if(temOutro()||escopo!=="meus")tl+=[["meus","Minha agenda"],["outro","De "+OUTRO()],["todos","Todas"]].map(([k,n])=>`<button class="chip" data-esc="${k}" aria-pressed="${escopo===k}">${n}</button>`).join("");
+    tl+=`<span class="sp"></span>${sel?"":`<button class="chip" data-selon>Selecionar</button>`}</div>`;h+=tl;}
   if(modo==="ok"||modo==="cx")h+=`<input class="search" id="busca" placeholder="Buscar…" value="${esc(busca)}">`;
   if(tags.length&&modo!=="cx")h+=`<div class="chips"><button class="chip" data-tag="" aria-pressed="${!tagSel}">Tudo</button>${tags.map(t=>`<button class="chip" data-tag="${esc(t)}" aria-pressed="${t===tagSel}">#${esc(t)}</button>`).join("")}</div>`;
   el.innerHTML=h;
@@ -360,6 +417,62 @@ function render(){
   document.getElementById("ncx").textContent=vis().filter(e=>e.st==="cx").length||"";
   renderExtra(); renderLista();
 }
+
+/* ---------- Seleção múltipla ---------- */
+function visiveisNaTela(){return [...document.querySelectorAll("#lista [data-sel]")].map(x=>x.dataset.sel);}
+function renderSel(){let b=document.getElementById("selbar");
+  document.querySelector(".composer").hidden=!!sel;
+  if(!sel){if(b)b.remove();return}
+  if(!b){b=document.createElement("div");b.id="selbar";b.className="selbar";document.body.appendChild(b)}
+  const n=sel.size,dis=n?"":" disabled";
+  b.innerHTML=`<div class="cbox"><div class="row1"><span>${n} selecionado${n===1?"":"s"}</span><button data-selall>Selecionar tudo</button><button data-seloff>Cancelar</button></div>
+    <div class="acts"><button data-lote="ok"${dis}>✓ Concluir</button><button data-lote="adiar"${dis}>Adiar…</button><button data-lote="cx"${dis}>Desmarcar</button><button class="red" data-lote="del"${dis}>Excluir</button></div></div>`;}
+function sairSel(){sel=null;render();renderSel()}
+function lote(acao,valor){
+  const its=evs.filter(e=>sel.has(e.id));if(!its.length)return;const sn=snap(),n=its.length,s=n>1?"s":"";
+  if(acao==="ok"){its.forEach(e=>{if(e.st!=="ok"&&e.st!=="cx")concluir(e)});toast(n+" concluído"+s,restore(sn))}
+  if(acao==="cx"){its.forEach(e=>e.st="cx");toast(n+" desmarcado"+s,restore(sn))}
+  if(acao==="del"){const ids=new Set(its.filter(e=>!e.origem).map(e=>e.id));its.forEach(e=>{if(e.origem)e.oculto=true});evs=evs.filter(e=>!ids.has(e.id));toast(n+" excluído"+s,restore(sn))}
+  if(acao==="data"){its.forEach(e=>{e.data=valor;if(e.st==="cx")e.st="";if(e.origem)e.manual=true});toast(n+" movido"+s+" para "+rotDia(valor),restore(sn))}
+  sel=null;save();renderSel();}
+function escolherAdiar(){const b=hoje0();
+  const s=openSheet(`<h3>Adiar ${sel.size} ite${sel.size>1?"ns":"m"}</h3>
+    <button class="act" data-ad="${key(b)}">Hoje</button><button class="act" data-ad="${key(add(b,1))}">Amanhã</button><button class="act" data-ad="${key(add(b,7))}">Daqui a 1 semana</button>
+    <form class="form" id="fad" style="margin-top:6px"><label class="full">Outra data<input id="ad-d" type="date" value="${key(add(b,2))}" required></label>
+    <div class="btns full"><button type="button" data-close>Cancelar</button><button class="pri" type="submit">Mover</button></div></form>`);
+  s.querySelectorAll("[data-ad]").forEach(x=>x.onclick=()=>{closeSheet();lote("data",x.dataset.ad)});
+  s.querySelector("#fad").onsubmit=ev=>{ev.preventDefault();const v=s.querySelector("#ad-d").value;closeSheet();if(v)lote("data",v)};}
+// segurar o dedo num item entra no modo de seleção
+let lpT=null,lpFeito=false;
+document.addEventListener("pointerdown",ev=>{const it=ev.target.closest("[data-lp]");if(!it||sel||ev.target.closest(".ck,.more"))return;
+  lpFeito=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpFeito=true;sel=new Set([it.dataset.lp]);try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}render();renderSel()},550);});
+["pointerup","pointercancel","pointerleave","scroll"].forEach(t=>document.addEventListener(t,()=>clearTimeout(lpT),true));
+document.addEventListener("pointermove",ev=>{if(Math.abs(ev.movementX)+Math.abs(ev.movementY)>6)clearTimeout(lpT)},true);
+
+/* ---------- Detalhe: anotações e checklist ---------- */
+let detId=null;
+function detalhe(e){detId=e.id;
+  const ck=(e.check||[]).map((c,i)=>`<label class="ci${c.ok?" ok":""}"><input type="checkbox" data-ci="${i}"${c.ok?" checked":""}><span>${esc(c.t)}</span><button type="button" data-cirm="${i}" aria-label="Remover">✕</button></label>`).join("");
+  const meta=[rotDia(e.data),e.hora?e.hora+(e.fim?"–"+e.fim:""):"",e.local].filter(Boolean).map(esc).join(" · ");
+  const s=openSheet(`<h3>${esc(e.titulo)}</h3><p style="margin:-4px 4px 4px;color:var(--muted);font-size:14px">${meta}</p>
+    ${e.detalhe?`<p style="margin:0 4px 6px;font-size:14px">${esc(e.detalhe)}</p>`:""}
+    <div class="dlab">Checklist</div><div class="clk">${ck||'<p style="margin:2px 4px 6px;color:var(--muted);font-size:14px">Nenhum item. Adicione abaixo.</p>'}</div>
+    <form class="addci" id="fci"><input id="ci-t" placeholder="Adicionar item (ex.: conferir prumo)" autocomplete="off"><button type="submit">+</button></form>
+    <div class="dlab">Anotações</div><textarea class="nota" id="nota" placeholder="Observações, decisões, pendências…">${esc(e.nota||"")}</textarea>
+    <div class="btns"><button type="button" data-detedit>Editar</button><button class="pri" type="button" data-close>Fechar</button></div>`);
+  s.querySelectorAll("[data-ci]").forEach(x=>x.onchange=()=>{e.check[+x.dataset.ci].ok=x.checked;save();detalhe(e)});
+  s.querySelectorAll("[data-cirm]").forEach(x=>x.onclick=ev=>{ev.preventDefault();e.check.splice(+x.dataset.cirm,1);save();detalhe(e)});
+  s.querySelector("#fci").onsubmit=ev=>{ev.preventDefault();const v=s.querySelector("#ci-t").value.trim();if(!v)return;e.check=e.check||[];e.check.push({t:v,ok:false});save();detalhe(e);setTimeout(()=>{const i=document.getElementById("ci-t");if(i)i.focus()},30)};
+  const nt=s.querySelector("#nota");let ntT=null;nt.oninput=()=>{clearTimeout(ntT);ntT=setTimeout(()=>{e.nota=nt.value;save()},700)};nt.onblur=()=>{clearTimeout(ntT);if(e.nota!==nt.value){e.nota=nt.value;save()}};
+  s.querySelector("[data-detedit]").onclick=()=>{if(e.nota!==nt.value)e.nota=nt.value;editar(e)};}
+
+/* ---------- Backup ---------- */
+function backup(){const dados=JSON.stringify({app:"rotina",versao:1,gerado:new Date().toISOString(),itens:evs.map(e=>({id:e.id,...limpa(e)}))},null,1);
+  if(NATIVO){try{navigator.clipboard.writeText(dados);toast("Backup copiado. Cole num e-mail ou nota para guardar")}catch(e){toast("Faça o backup pela versão web do app")}return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([dados],{type:"application/json"}));a.download="Backup Rotina - "+key(hoje0())+".json";document.body.appendChild(a);a.click();a.remove();toast("Backup baixado");}
+function restaurar(){const i=document.createElement("input");i.type="file";i.accept=".json,application/json";
+  i.onchange=async()=>{try{const j=JSON.parse(await i.files[0].text());const its=j.itens||[];let n=0;const ids=new Set(evs.map(e=>e.id));
+    its.forEach(x=>{if(!x.id||ids.has(x.id))return;evs.push(norm({...x}));n++});save();toast(n?n+" itens restaurados":"Nada novo para restaurar")}catch(e){toast("Arquivo de backup inválido")}};i.click();}
 
 /* ---------- Popup do resumo ---------- */
 let popAtual=null;
@@ -414,10 +527,14 @@ function editar(e){
   const s=openSheet(`<h3>Editar</h3><form class="form" id="fe">
     <label class="full">Título<input id="f-t" value="${esc(e.titulo)}" required></label>
     <label>Data<input id="f-d" type="date" value="${e.data}" required></label>
-    <label>Hora<input id="f-h" type="time" value="${e.hora}"></label>
+    <label>Início<input id="f-h" type="time" value="${e.hora}"></label>
+    <label>Término<input id="f-f" type="time" value="${e.fim||""}"></label>
+    <label>Lembrete<select id="f-lb">${Object.entries(LEMB).map(([k,v])=>`<option value="${k}"${String(e.lemb??"")===k?" selected":""}>${v}</option>`).join("")}</select></label>
     <label class="full">Local<input id="f-l" value="${esc(e.local)}"></label>
     <label>Prioridade<select id="f-p">${["Nenhuma","Baixa","Média","Alta"].map((n,i)=>`<option value="${i}"${i===e.prio?" selected":""}>${n}</option>`).join("")}</select></label>
     <label>Repetir<select id="f-r"><option value="">Não repete</option>${Object.entries(REP).map(([k,v])=>`<option value="${k}"${k===e.rep?" selected":""}>${v}</option>`).join("")}</select></label>
+    <label>Repetir até<input id="f-ra" type="date" value="${e.repAte||""}"></label>
+    ${e.origem?"":`<label>Agenda de<select id="f-dn"><option value="${USER}"${meu(e)&&e.dono!=="ambos"?" selected":""}>Minha</option><option value="${USER===EMAILS.ana?EMAILS.lucas:EMAILS.ana}"${!meu(e)?" selected":""}>${OUTRO()}</option><option value="ambos"${e.dono==="ambos"?" selected":""}>Nós dois</option></select></label>`}
     <label class="full">Etiquetas (separadas por espaço)<input id="f-g" value="${esc(e.tags.join(" "))}"></label>
     <div class="btns full"><button type="button" id="f-c">Cancelar</button><button class="pri" type="submit">Salvar</button></div></form>`);
   s.querySelector("#f-c").onclick=()=>{closeSheet();if(popAtual)popup(popAtual)};
@@ -430,7 +547,9 @@ function editar(e){
         else if(x==="obra"){closeSheet();window.open("https://englborba-tech.github.io/Obras/","_blank");}
         else{closeSheet();editar(e);}});
       return;}
-    Object.assign(e,{titulo:q("#f-t").trim()||e.titulo,data:q("#f-d"),hora:q("#f-h"),local:q("#f-l").trim(),prio:+q("#f-p"),rep:q("#f-r")||null,tags:q("#f-g").toLowerCase().split(/[\s,#]+/).filter(Boolean),ex:0});
+    const fim=q("#f-f"),hr=q("#f-h");if(fim&&hr&&fim<=hr){toast("O término precisa ser depois do início");return}
+    Object.assign(e,{titulo:q("#f-t").trim()||e.titulo,data:q("#f-d"),hora:hr,fim:hr?fim:"",local:q("#f-l").trim(),prio:+q("#f-p"),rep:q("#f-r")||null,repAte:q("#f-r")?q("#f-ra"):"",lemb:q("#f-lb")===""?null:+q("#f-lb"),tags:q("#f-g").toLowerCase().split(/[\s,#]+/).filter(Boolean),ex:0});
+    const dn=s.querySelector("#f-dn");if(dn)e.dono=dn.value;
     closeSheet();save();toast("Salvo");if(popAtual)popup(popAtual)};
 }
 
@@ -438,7 +557,8 @@ const txt=document.getElementById("txt"), pv=document.getElementById("pv");
 function preview(){
   if(!txt.value.trim()){pv.innerHTML='<span class="warn">Ex.: reunião sexta 11h30 na obra Lumiere #lumiere !!</span>';return}
   const p=parse(txt.value), c=[`<span>${esc(p.titulo)}</span>`,`<span${p.semData?' class="warn"':""}>${rotDia(p.data)}</span>`];
-  c.push(p.hora?`<span>${p.hora}</span>`:'<span class="warn">sem horário (tarefa)</span>');
+  c.push(p.hora?`<span>${p.hora}${p.fim?"–"+p.fim:""}</span>`:'<span class="warn">sem horário (tarefa)</span>');
+  if(p.hora){const cf=conflitos({...p,id:"_novo",st:""});if(cf.length)c.push(`<span class="warn" style="color:var(--p2)">⚠ conflita com ${esc(cf[0].titulo)}</span>`)}
   if(p.local)c.push(`<span>${esc(p.local)}</span>`);
   if(p.rep)c.push(`<span>↻ ${REP[p.rep]}</span>`);
   if(p.prio)c.push(`<span>${"!".repeat(p.prio)} prioridade</span>`);
@@ -448,20 +568,31 @@ function preview(){
 function agendar(){
   if(!txt.value.trim())return;
   const p=parse(txt.value); delete p.semData;
-  evs.push(Object.assign({id:novoId(),st:""},p)); txt.value=""; preview();
-  if(modo==="semana"){diaSel=p.data;const x=dk(p.data);mes=new Date(x.getFullYear(),x.getMonth(),1)} save(); toast("Agendado para "+rotDia(p.data)+(p.hora?" às "+p.hora:""));
+  const novo=Object.assign({id:novoId(),st:"",dono:USER||EMAILS.lucas},p);evs.push(novo); txt.value=""; preview();
+  const cf=conflitos(novo);
+  if(modo==="semana"){diaSel=p.data;const x=dk(p.data);mes=new Date(x.getFullYear(),x.getMonth(),1)} save(); toast(cf.length?"Agendado · ⚠ conflita com "+cf[0].titulo:"Agendado para "+rotDia(p.data)+(p.hora?" às "+p.hora:""));
 }
 txt.addEventListener("input",preview);
 txt.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();agendar()}});
 document.getElementById("add").onclick=agendar;
 
 document.addEventListener("click",ev=>{
+  if(lpFeito){lpFeito=false;ev.preventDefault();return}
+  const sl=ev.target.closest("[data-sel]");
+  if(sl&&sel&&!ev.target.closest("button")){const id=sl.dataset.sel;sel.has(id)?sel.delete(id):sel.add(id);renderLista();renderSel();return}
+  const dt=ev.target.closest("[data-det]");
+  if(dt&&!sel&&!ev.target.closest("button")){const e=evs.find(x=>x.id==dt.dataset.det);if(e)detalhe(e);return}
   const t=ev.target.closest("button"); if(!t)return; const d=t.dataset;
+  if("selon" in d){sel=new Set();render();renderSel();return}
+  if("seloff" in d){sairSel();return}
+  if("selall" in d){visiveisNaTela().forEach(id=>sel.add(id));renderLista();renderSel();return}
+  if(d.lote){if(d.lote==="adiar")return escolherAdiar();return lote(d.lote)}
+  if(d.esc){escopo=d.esc;try{localStorage.setItem("rotina-escopo",escopo)}catch(e){}render();return}
   if(d.ck){const e=evs.find(x=>x.id==d.ck),sn=snap();const m=concluir(e);save();toast(m,restore(sn))}
   else if(d.more){menu(evs.find(x=>x.id==d.more))}
   else if(d.pop){popup(d.pop)}
   else if("close" in d){popAtual=null;closeSheet()}
-  else if(d.m){modo=d.m;busca="";document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b===t));render()}
+  else if(d.m){modo=d.m;busca="";if(sel){sel=new Set();renderSel()}document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b===t));render()}
   else if(d.day){diaSel=d.day;const x=dk(d.day);if(x.getMonth()!==mes.getMonth()){mes=new Date(x.getFullYear(),x.getMonth(),1)}render()}
   else if(d.mes){if(d.mes==="0"){const b=hoje0();mes=new Date(b.getFullYear(),b.getMonth(),1);diaSel=key(b)}else mes=new Date(mes.getFullYear(),mes.getMonth()+ +d.mes,1);render()}
   else if("tag" in d){tagSel=d.tag;render()}
@@ -474,22 +605,85 @@ firebase.initializeApp({apiKey:"AIzaSyBWsU8yswapQOqpo7GvNni0l0SGNLcr_10",authDom
   storageBucket:"financias-c809d.firebasestorage.app",messagingSenderId:"109196671935",appId:"1:109196671935:web:ca3465a6b6fb215ffb7f0a"});
 const fs=firebase.firestore();fs.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 const auth=firebase.auth();let unsub=null;
-document.getElementById("entrar").onclick=async()=>{const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
+const NATIVO=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const PL=NATIVO?Capacitor.Plugins:{};
+document.getElementById("entrar").onclick=async()=>{
+  if(NATIVO){try{const r=await PL.FirebaseAuthentication.signInWithGoogle();const tk=r.credential&&r.credential.idToken;
+      if(!tk)throw new Error("sem token");await auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(tk));}
+    catch(e){toast("Não foi possível entrar ("+(e.code||e.message||e)+")");}return;}
+  const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
   try{await auth.signInWithPopup(p);}catch(e){if(["auth/popup-blocked","auth/operation-not-supported-in-this-environment"].includes(e.code))auth.signInWithRedirect(p);else toast("Não foi possível entrar ("+e.code+")");}};
-document.getElementById("sair").onclick=async()=>{if(unsub)unsub();try{await auth.signOut();await fs.terminate();await fs.clearPersistence();}catch(e){}location.reload();};
+document.getElementById("sair").onclick=async()=>{if(unsub)unsub();if(NATIVO){try{await PL.FirebaseAuthentication.signOut();await PL.LocalNotifications.cancel({notifications:(await PL.LocalNotifications.getPending()).notifications.map(n=>({id:n.id}))});}catch(e){}}try{await auth.signOut();await fs.terminate();await fs.clearPersistence();}catch(e){}location.reload();};
 auth.onAuthStateChanged(u=>{
   if(unsub){unsub();unsub=null;}
   document.getElementById("login").hidden=!!u;db=null;evs=[];base={};render();
   if(!u)return;
-  db=fs;const st=document.getElementById("st");st.textContent="Conectando…";
+  USER=(u.email||"").toLowerCase();db=fs;const st=document.getElementById("st");st.textContent="Conectando…";
   unsub=fs.collection("agenda").onSnapshot(sn=>{
     if(pendente&&sn.metadata&&sn.metadata.hasPendingWrites)return;
     evs=sn.docs.map(d=>norm({...d.data(),id:d.id}));base={};evs.forEach(e=>base[e.id]=JSON.stringify(limpa(e)));
     st.textContent="✓ Sincronizado · "+u.email+(sn.metadata&&sn.metadata.fromCache?" (offline)":"");
-    if(!document.querySelector(".scrim form"))render();refreshPop();
+    if(!document.querySelector(".scrim form"))render();refreshPop();if(typeof nativoSync==="function")nativoSync();
   },e=>{st.textContent=e.code==="permission-denied"?"Sem acesso: libere a coleção \"agenda\" nas regras do Firestore":"Erro ao carregar ("+e.code+")";});
 });
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(!NATIVO&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* ---------- App Android: notificações e widget ---------- */
+const AJ_KEY="rotina-ajustes";
+function ajustes(){let a={};try{a=JSON.parse(localStorage.getItem(AJ_KEY))||{};}catch(e){}return Object.assign({briefing:true,hora:"06:45",lembrete:30,fimDeSemana:true},a);}
+function salvarAjustes(a){try{localStorage.setItem(AJ_KEY,JSON.stringify(a));}catch(e){}nativoSync(true);}
+document.getElementById("bkp").onclick=()=>{const s=openSheet(`<h3>Backup da agenda</h3>
+  <button class="act" data-bk="exp">${NATIVO?"Copiar backup":"Baixar backup (.json)"}</button>${NATIVO?"":`<button class="act" data-bk="imp">Restaurar de um arquivo</button>`}
+  <p style="margin:4px;color:var(--muted);font-size:13px">O backup inclui todos os itens. Restaurar só adiciona o que não existe; nada é apagado.</p>`);
+  s.querySelectorAll("[data-bk]").forEach(b=>b.onclick=()=>{closeSheet();b.dataset.bk==="exp"?backup():restaurar()});};
+document.getElementById("ajustes").onclick=()=>{const a=ajustes();
+  const s=openSheet(`<h3>Notificações</h3><form class="form" id="fa">
+    <label class="full" style="flex-direction:row;align-items:center;gap:10px;color:var(--fg);font-size:15px"><input type="checkbox" id="a-b" ${a.briefing?"checked":""} style="width:20px;height:20px"> Resumo do dia pela manhã</label>
+    <label>Horário do resumo<input id="a-h" type="time" value="${a.hora}"></label>
+    <label>Lembrar antes do compromisso<select id="a-l">${[0,10,15,30,60,120].map(m=>`<option value="${m}"${m===a.lembrete?" selected":""}>${m?m<60?m+" min":m/60+" h":"Não lembrar"}</option>`).join("")}</select></label>
+    <label class="full" style="flex-direction:row;align-items:center;gap:10px;color:var(--fg);font-size:15px"><input type="checkbox" id="a-f" ${a.fimDeSemana?"checked":""} style="width:20px;height:20px"> Resumo também no sábado e domingo</label>
+    ${NATIVO?"":`<p class="full" style="margin:0;color:var(--muted);font-size:13px">As notificações funcionam no app instalado no Android.</p>`}
+    <div class="btns full"><button type="button" id="a-c">Cancelar</button><button class="pri" type="submit">Salvar</button></div></form>`);
+  s.querySelector("#a-c").onclick=closeSheet;
+  s.querySelector("#fa").onsubmit=ev=>{ev.preventDefault();salvarAjustes({briefing:s.querySelector("#a-b").checked,hora:s.querySelector("#a-h").value||"06:45",lembrete:+s.querySelector("#a-l").value,fimDeSemana:s.querySelector("#a-f").checked});closeSheet();toast("Notificações atualizadas");};};
+const ativos=()=>propria().filter(e=>e.st!=="cx"&&e.st!=="ok");
+function itensDoDia(k){return propria().filter(e=>e.data===k&&e.st!=="cx"&&e.st!=="ok").sort(ord);}
+const plural=(n,s,p)=>n+" "+(n===1?s:p);
+function textoBriefing(k){const its=itensDoDia(k),hk=key(hoje0()),atr=ativos().filter(e=>e.data<hk).length;
+  const comp=its.filter(e=>e.hora),tar=its.filter(e=>!e.hora);
+  const partes=[];if(comp.length)partes.push(plural(comp.length,"compromisso","compromissos"));if(tar.length)partes.push(plural(tar.length,"tarefa","tarefas"));
+  if(atr)partes.push(plural(atr,"atrasado","atrasados"));
+  const titulo=its.length?"Hoje: "+partes.join(" · "):atr?"Dia livre · "+plural(atr,"item atrasado","itens atrasados"):"Dia livre";
+  const linhas=its.slice(0,8).map(e=>(e.hora?e.hora+"  ":"•  ")+e.titulo+(e.local&&!e.origem?" · "+e.local:""));
+  if(its.length>8)linhas.push("+"+(its.length-8)+" itens");
+  return{titulo,corpo:linhas.join("\n")||"Nada marcado. Toque para abrir a agenda."};}
+let nsT=null,nsAssin="";
+function nativoSync(forcar){if(!NATIVO||!db)return;clearTimeout(nsT);nsT=setTimeout(async()=>{
+  const a=ajustes(),b=hoje0(),dias={};
+  const wi=e=>({hora:e.hora,titulo:e.titulo,local:(e.fim?"até "+e.fim+(e.local?" · ":""):"")+(e.local||""),detalhe:e.detalhe||"",prio:e.prio||0,obra:!!e.origem,data:e.data});
+  for(let i=0;i<8;i++){const k=key(add(b,i));dias[k]={itens:itensDoDia(k).slice(0,20).map(wi)};}
+  const atrL=ativos().filter(e=>e.data<key(b)).sort(ord).slice(0,10).map(wi);
+  try{await PL.WidgetBridge.update({data:JSON.stringify({dias,atrasados:atrL,atualizado:Date.now()})});}catch(e){}
+  // notificações: refaz a programação dos próximos 7 dias
+  const lista=[],agora=Date.now(),[hh,mm]=a.hora.split(":").map(Number);
+  if(a.briefing)for(let i=0;i<7;i++){const d=add(b,i);if(!a.fimDeSemana&&(d.getDay()===0||d.getDay()===6))continue;
+    const at=new Date(d);at.setHours(hh,mm,0,0);if(at.getTime()<=agora+30000)continue;const t=textoBriefing(key(d));
+    lista.push({id:1000+i,channelId:"briefing",title:t.titulo,body:t.corpo,largeBody:t.corpo,schedule:{at,allowWhileIdle:true}});}
+  ativos().filter(e=>e.data>=key(b)&&e.data<=key(add(b,8))).forEach((e,i)=>{
+    const lb=e.lemb==null||e.lemb===""?a.lembrete:+e.lemb;if(!lb)return;if(!e.hora&&lb<1440)return;
+    const at=new Date(e.data+"T"+(e.hora||"08:00")+":00");at.setMinutes(at.getMinutes()-lb);if(at.getTime()<=agora+30000)return;
+    const quando=lb>=1440?"amanhã"+(e.hora?" às "+e.hora:""):"em "+(lb<60?lb+" min":lb/60+" h");
+    lista.push({id:2000+i,channelId:"lembretes",title:e.titulo,body:(e.hora?e.hora+(e.fim?"–"+e.fim:""):"Dia todo")+(e.local?" · "+e.local:"")+" ("+quando+")",schedule:{at,allowWhileIdle:true}});});
+  const assin=JSON.stringify(lista);if(!forcar&&assin===nsAssin)return;nsAssin=assin;
+  try{const LN=PL.LocalNotifications;let p=await LN.checkPermissions();if(p.display!=="granted")p=await LN.requestPermissions();if(p.display!=="granted")return;
+    const pend=await LN.getPending();if(pend.notifications.length)await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))});
+    if(lista.length)await LN.schedule({notifications:lista});}catch(e){console.error(e);}
+},800);}
+if(NATIVO){
+  try{PL.LocalNotifications.createChannel({id:"briefing",name:"Resumo do dia",description:"Resumo da manhã com os compromissos do dia",importance:4});
+      PL.LocalNotifications.createChannel({id:"lembretes",name:"Lembretes",description:"Aviso antes de cada compromisso",importance:4});}catch(e){}
+  try{Capacitor.Plugins.App&&Capacitor.Plugins.App.addListener("resume",()=>{render();nativoSync(true);});}catch(e){}
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){render();nativoSync(true);}});
+}
 render();
 </script>
 </body>
