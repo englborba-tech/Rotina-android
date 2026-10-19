@@ -90,6 +90,21 @@ public class RotinaWidgetService extends RemoteViewsService {
                     }
                     c.add(Calendar.DAY_OF_MONTH, 1);
                 }
+                JSONArray obras = raiz.optJSONArray("obras");
+                if (obras != null && obras.length() > 0) {
+                    linhas.add(cab("Pendências das obras"));
+                    String hoje = iso.format(new Date());
+                    for (int i = 0; i < obras.length(); i++) {
+                        JSONObject o = obras.getJSONObject(i);
+                        String d = o.optString("data", "");
+                        String dt = "";
+                        try { dt = (d.compareTo(hoje) < 0 ? "⚠ era até " : d.equals(hoje) ? "hoje · " : "até ") + (d.equals(hoje) ? "" : curto.format(iso.parse(d))); } catch (Exception ignored) { }
+                        Linha l = item(o, false, null);
+                        l.sub = dt + (l.sub.isEmpty() ? "" : (dt.isEmpty() ? "" : " · ") + l.sub);
+                        l.hora = "";
+                        linhas.add(l);
+                    }
+                }
             } catch (Exception ignored) { }
         }
 
@@ -101,14 +116,14 @@ public class RotinaWidgetService extends RemoteViewsService {
             if (l.cab) {
                 v = new RemoteViews(ctx.getPackageName(), R.layout.widget_dia);
                 v.setTextViewText(R.id.dia, l.texto);
-                v.setTextColor(R.id.dia, l.texto.equals("Atrasados") ? Color.parseColor("#F07562") : Color.parseColor("#9AA7C4"));
+                v.setTextColor(R.id.dia, l.texto.equals("Atrasados") ? Color.parseColor("#F07562") : l.texto.startsWith("Pendências") ? Color.parseColor("#F0A84A") : Color.parseColor("#9AA7C4"));
             } else {
                 v = new RemoteViews(ctx.getPackageName(), R.layout.widget_item);
-                v.setTextViewText(R.id.hora, l.hora.isEmpty() ? "•" : l.hora);
-                v.setTextViewText(R.id.titulo, (l.obra ? "🛒 " : "") + l.titulo);
+                v.setTextViewText(R.id.hora, l.hora.isEmpty() ? (l.obra ? "🛒" : "•") : l.hora);
+                v.setTextViewText(R.id.titulo, l.titulo);
                 if (l.sub.isEmpty()) v.setViewVisibility(R.id.sub, View.GONE);
                 else { v.setViewVisibility(R.id.sub, View.VISIBLE); v.setTextViewText(R.id.sub, l.sub); }
-                int cor = l.prio >= 3 ? Color.parseColor("#F07562") : l.prio == 2 ? Color.parseColor("#F0A84A") : Color.parseColor("#7D9CF0");
+                int cor = l.obra ? Color.parseColor("#F0A84A") : l.prio >= 3 ? Color.parseColor("#F07562") : l.prio == 2 ? Color.parseColor("#F0A84A") : Color.parseColor("#7D9CF0");
                 v.setInt(R.id.barra, "setBackgroundColor", cor);
             }
             v.setOnClickFillInIntent(R.id.linha, new Intent());

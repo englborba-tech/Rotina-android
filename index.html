@@ -364,7 +364,7 @@ function renderHero(){
     <div><div class="when">${DIAS[b.getDay()]}, ${b.getDate()} de ${MESES[b.getMonth()]}</div><h1>${h<12?"Bom dia":h<18?"Boa tarde":"Boa noite"}, Lucas</h1></div>
     <div class="stats"><button class="stat" data-pop="hoje"><b>${hj.length-feitos}</b><span>para hoje</span></button><button class="stat" data-pop="feitos"><b>${feitos}</b><span>feitos hoje</span></button><button class="stat" data-pop="atras"><b>${atras}</b><span>atrasados</span></button></div>
     <div class="bar"><i style="width:${hj.length?Math.round(feitos/hj.length*100):0}%"></i></div>
-    <div class="next">${nx}</div>${nComp?`<div class="next" style="font-size:13px">🛒 ${nComp} compra${nComp>1?"s":""} de obra para os próximos dias</div>`:""}`;
+    <div class="next">${nx}</div>${nComp?`<div class="next" style="font-size:13px">🛒 ${nComp} pendência${nComp>1?"s":""} de obra para os próximos dias</div>`:""}`;
 }
 function renderExtra(){
   const el=document.getElementById("extra"), tags=[...new Set(vis().filter(e=>e.st!=="cx").flatMap(e=>e.tags))].sort();
@@ -400,7 +400,7 @@ function renderLista(){
     h+=group("Amanhã",am);
     if(!h)h=`<div class="empty"><b>Dia livre</b>Nada marcado para hoje. Use o campo abaixo para adicionar.</div>`;
     const cp=filtra(compras().filter(e=>!e.st&&e.data<=key(add(hoje0(),7)))).sort(ord);
-    h+=group("🛒 Compras das obras",cp,"cmp","",{data:1});
+    h+=group("🛒 Pendências das obras",cp,"cmp","",{data:1});
   }else if(modo==="semana"){
     const l=filtra(vis().filter(e=>e.data===diaSel&&e.st!=="cx")).sort((a,b)=>(!!a.origem-!!b.origem)||ord(a,b));
     h+=group(rotDia(diaSel),l);
@@ -662,7 +662,10 @@ function nativoSync(forcar){if(!NATIVO||!db)return;clearTimeout(nsT);nsT=setTime
   const wi=e=>({hora:e.hora,titulo:e.titulo,local:(e.fim?"até "+e.fim+(e.local?" · ":""):"")+(e.local||""),detalhe:e.detalhe||"",prio:e.prio||0,obra:!!e.origem,data:e.data});
   for(let i=0;i<8;i++){const k=key(add(b,i));dias[k]={itens:itensDoDia(k).slice(0,20).map(wi)};}
   const atrL=ativos().filter(e=>e.data<key(b)).sort(ord).slice(0,10).map(wi);
-  try{await PL.WidgetBridge.update({data:JSON.stringify({dias,atrasados:atrL,atualizado:Date.now()})});}catch(e){}
+  const obrasP=evs.filter(e=>e.origem&&!e.oculto&&!e.st&&meu(e)&&e.data<=key(add(b,7))).sort(ord).slice(0,20).map(wi);
+  const m0=new Date(b.getFullYear(),b.getMonth(),1),g0=add(m0,-m0.getDay()),marcas={};
+  for(let i=0;i<42;i++){const k=key(add(g0,i)),a1=propria().filter(e=>e.data===k&&!e.st).length,c1=evs.filter(e=>e.origem&&!e.oculto&&!e.st&&meu(e)&&e.data===k).length;if(a1||c1)marcas[k]={a:a1,c:c1};}
+  try{await PL.WidgetBridge.update({data:JSON.stringify({dias,atrasados:atrL,obras:obrasP,marcas,atualizado:Date.now()})});}catch(e){}
   // notificações: refaz a programação dos próximos 7 dias
   const lista=[],agora=Date.now(),[hh,mm]=a.hora.split(":").map(Number);
   if(a.briefing)for(let i=0;i<7;i++){const d=add(b,i);if(!a.fimDeSemana&&(d.getDay()===0||d.getDay()===6))continue;

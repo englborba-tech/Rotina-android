@@ -37,10 +37,15 @@ public class RotinaWidget extends AppWidgetProvider {
         int[] ids = mgr.getAppWidgetIds(new ComponentName(ctx, RotinaWidget.class));
         for (int id : ids) mgr.updateAppWidget(id, montar(ctx, id));
         mgr.notifyAppWidgetViewDataChanged(ids, R.id.lista);
+        int[] cal = mgr.getAppWidgetIds(new ComponentName(ctx, RotinaCalWidget.class));
+        for (int id : cal) mgr.updateAppWidget(id, montar(ctx, id, R.layout.widget_calendario));
+        mgr.notifyAppWidgetViewDataChanged(cal, R.id.lista);
     }
 
-    static RemoteViews montar(Context ctx, int widgetId) {
-        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_rotina);
+    static RemoteViews montar(Context ctx, int widgetId) { return montar(ctx, widgetId, R.layout.widget_rotina); }
+
+    static RemoteViews montar(Context ctx, int widgetId, int layout) {
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), layout);
         String titulo = new SimpleDateFormat("EEEE, d 'de' MMMM", new Locale("pt", "BR")).format(new Date());
         v.setTextViewText(R.id.data, titulo.substring(0, 1).toUpperCase() + titulo.substring(1));
 
@@ -62,7 +67,10 @@ public class RotinaWidget extends AppWidgetProvider {
             if (tar > 0) { if (r.length() > 0) r.append(" · "); r.append(tar).append(tar == 1 ? " tarefa" : " tarefas"); }
         }
         if (atr > 0) r.append(" · ").append(atr).append(atr == 1 ? " atrasado" : " atrasados");
+        JSONArray ob = raiz.optJSONArray("obras");
+        if (ob != null && ob.length() > 0) r.append(" · 🛒 ").append(ob.length());
         v.setTextViewText(R.id.resumo, r.toString());
+        if (layout == R.layout.widget_calendario) RotinaCalWidget.preencherMes(ctx, v, raiz);
 
         // lista rolável
         Intent svc = new Intent(ctx, RotinaWidgetService.class);
