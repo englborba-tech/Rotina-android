@@ -625,7 +625,10 @@ auth.onAuthStateChanged(u=>{
     if(!document.querySelector(".scrim form"))render();refreshPop();if(typeof nativoSync==="function")nativoSync();
   },e=>{st.textContent=e.code==="permission-denied"?"Sem acesso: libere a coleção \"agenda\" nas regras do Firestore":"Erro ao carregar ("+e.code+")";});
 });
-if(!NATIVO&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+// versão publicada (site e app carregando do GitHub): guarda offline e se atualiza sozinha
+if(location.protocol==="https:"&&location.hostname.endsWith("github.io")&&"serviceWorker" in navigator){const tinhaSW=!!navigator.serviceWorker.controller;let rec=false;
+  navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!tinhaSW||rec)return;rec=true;const tenta=()=>{if(document.querySelector(".scrim"))return setTimeout(tenta,1500);location.reload();};tenta();});}
 /* ---------- App Android: notificações e widget ---------- */
 const AJ_KEY="rotina-ajustes";
 function ajustes(){let a={};try{a=JSON.parse(localStorage.getItem(AJ_KEY))||{};}catch(e){}return Object.assign({briefing:true,hora:"06:45",lembrete:30,fimDeSemana:true},a);}
